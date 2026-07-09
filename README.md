@@ -46,8 +46,8 @@ GET /api/audit?domain=x  ──►  public/index.html hydrates (silent view trac
 
 ## Endpoints
 
-Trigger generation (idempotent — reuses a `ready` audit fresher than 24 h and
-won't duplicate an in-flight run unless `"force": true`):
+Trigger generation. Every request regenerates a completed audit; a currently
+running audit is not duplicated:
 
 ```bash
 curl -X POST https://<deployment>/api/audits \

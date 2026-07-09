@@ -277,7 +277,10 @@ async function composeCopy(research: Research): Promise<Copy> {
     .join('\n');
   const parsed = extractJson(text);
   if (!parsed || typeof parsed.improved_title !== 'string' || !Array.isArray(parsed.findings) || parsed.findings.length < 4) {
-    throw new Error('LLM returned malformed audit copy'); // step retries
+    // A model formatting miss is not made more reliable by retrying the workflow.
+    // Keep the audit moving with the deterministic, evidence-grounded copy.
+    console.warn('Anthropic returned malformed audit copy; using template fallback');
+    return fallback;
   }
 
   const ICONS = new Set(['sell', 'star', 'image', 'local_offer', 'title', 'visibility_off']);
@@ -336,9 +339,10 @@ async function createAfterImage(research: Research): Promise<string | null> {
 
   const sb = svc();
   const path = `${research.domain}/after.webp`;
+  const body = new Blob([webp], { type: 'image/webp' });
   const { error } = await sb.storage
     .from('audit-assets')
-    .upload(path, webp, { contentType: 'image/webp', upsert: true });
+    .upload(path, body, { contentType: 'image/webp', upsert: true });
   if (error) throw new Error(`Storage upload failed: ${error.message}`);
   return sb.storage.from('audit-assets').getPublicUrl(path).data.publicUrl;
 }
@@ -641,7 +645,23 @@ async function geminiRestyle(img: Buffer, mime: string, key: string): Promise<Bu
   const parts = json?.candidates?.[0]?.content?.parts ?? [];
   for (const p of parts) {
     const data = p?.inlineData?.data ?? p?.inline_data?.data;
-    if (data) return Buffer.from(data, 'base64');
+    const partMime = p?.inlineData?.mimeType ?? p?.inlineData?.mime_type ?? p?.inline_data?.mimeType ?? p?.inline_data?.mime_type;
+    if (!data) continue;
+
+    const decoded = decodeBase64Bytes(data);
+    if (!decoded) {
+      console.warn('Gemini returned non-base64 image data; falling back to original image');
+      return null;
+    }
+
+    if (!(await isSupportedImageBuffer(decoded))) {
+      console.warn(
+        `Gemini returned undecodable image bytes${partMime ? ` (${String(partMime)})` : ''}; falling back to original image`,
+      );
+      return null;
+    }
+
+    return decoded;
   }
   return null;
 }
@@ -662,6 +682,32 @@ async function fetchWithTimeout(url: string, ms: number, init?: RequestInit): Pr
     });
   } finally {
     clearTimeout(timer);
+  }
+}
+
+function decodeBase64Bytes(input: unknown): Buffer | null {
+  if (typeof input !== 'string') return null;
+  const trimmed = input.trim().replace(/^data:[^;,]+;base64,/, '');
+  if (!trimmed || trimmed.includes('\uFFFD')) return null;
+
+  const normalized = trimmed.replace(/-/g, '+').replace(/_/g, '/');
+  if (!/^[A-Za-z0-9+/=]+$/.test(normalized)) return null;
+
+  const padded = normalized.padEnd(Math.ceil(normalized.length / 4) * 4, '=');
+  const bytes = Buffer.from(padded, 'base64');
+  if (!bytes.length) return null;
+
+  const canonicalInput = normalized.replace(/=+$/g, '');
+  const canonicalOutput = bytes.toString('base64').replace(/=+$/g, '');
+  return canonicalInput === canonicalOutput ? bytes : null;
+}
+
+async function isSupportedImageBuffer(buf: Buffer): Promise<boolean> {
+  try {
+    const meta = await sharp(buf).metadata();
+    return Boolean(meta.format);
+  } catch {
+    return false;
   }
 }
 
