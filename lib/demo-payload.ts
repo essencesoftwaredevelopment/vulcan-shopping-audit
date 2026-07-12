@@ -52,5 +52,5 @@ export const DEMO_PAYLOAD: AuditPayload = {
     { img: null, title: 'Premium Merino Crew Socks', price: '$74.00', store: 'footgear.com' },
     { img: null, title: 'Wool Blend Socks 3 Pack', price: '$68.00', store: 'sockhub.com' },
   ],
-  calc: { aov: 74.97, products: 60, spend: 3000, cpc: 1.2, cvr: 1.6 },
+  calc: { aov: 74.97, products: 60, spend: 15000, cpc: 1.2, cvr: 1.6, ctr_uplift: 20, cvr_uplift: 25 },
 };

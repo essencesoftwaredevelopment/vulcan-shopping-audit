@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Vulcan · Shopping Ad Profit Audit (preview)</title>
+<script>try{if(new URLSearchParams(location.search).get('embed')==='1')document.documentElement.classList.add('audit-embed');}catch(e){}</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800;900&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -48,7 +49,8 @@
   .dots i.on{background:var(--accent);width:26px;border-radius:9px}
 
   /* in-phone demo content */
-  .brand{font-family:'Geist Mono',monospace;text-align:center;font-size:26px;font-weight:600;letter-spacing:.02em;color:#111;margin-bottom:14px}
+  .brand{font-family:'Geist Mono',monospace;text-align:center;font-size:26px;font-weight:600;letter-spacing:.02em;color:#111;margin-bottom:14px;min-height:42px;display:flex;align-items:center;justify-content:center}
+  .brand-logo{max-height:42px;max-width:60px;width:auto;object-fit:contain;display:block}
   .p-hl{font-size:19px;line-height:1.18;font-weight:700;text-align:center;margin:0 0 4px}
   .p-sub{text-align:center;color:var(--mut);font-size:13px;margin:0 0 16px}
   /* google shopping ad card (kept native) — the ad is the hero, so make it big */
@@ -117,23 +119,27 @@
 
   /* calculator (phone inputs + explainer results) */
   .cfield{margin:0 0 12px} .cfield label{display:block;font-size:12px;color:var(--mut);font-weight:600;margin-bottom:5px}
-  .cfield input[type=number]{width:100%;padding:10px 12px;border:1px solid #dbe4f5;border-radius:10px;font:inherit;font-size:15px;font-weight:600;background:#f5f8ff;color:var(--accent);transition:.15s}
-  .cfield input[type=number]:focus{outline:none;border-color:var(--accent);background:#fff;box-shadow:0 0 0 3px rgba(47,109,246,.14)}
+  .cfield input[type=number], .cfield input[type=text]{width:100%;padding:10px 12px;border:1px solid #dbe4f5;border-radius:10px;font:inherit;font-size:15px;font-weight:600;background:#f5f8ff;color:var(--accent);transition:.15s}
+  .cfield input[type=number]:focus, .cfield input[type=text]:focus{outline:none;border-color:var(--accent);background:#fff;box-shadow:0 0 0 3px rgba(47,109,246,.14)}
   .cfield input[type=range]{width:100%;accent-color:var(--accent);height:6px}
   .cfield .up{color:var(--accent)}
   .crow{display:grid;grid-template-columns:1fr 1fr;gap:10px}
   .rescard{background:#f6f7f9;border-radius:14px;padding:14px 16px}
   .rescard .rl{font-size:11px;color:var(--mut);font-weight:600;text-transform:uppercase;letter-spacing:.03em}
   .rescard .rv{font-size:22px;font-weight:800;margin-top:3px} .rv.bad{color:var(--bad)}.rv.good{color:var(--good)}
-  .bigres{background:linear-gradient(135deg,#0f172a,#1e293b);color:#fff;border-radius:20px;padding:22px;text-align:center;margin-bottom:8px}
-  .bigres .rl{font-size:12px;color:#9fb3d8;text-transform:uppercase;letter-spacing:.06em;font-weight:700}
-  .bigres .bigv{font-size:40px;font-weight:900;color:#5cf08f;line-height:1.05;margin:4px 0}
-  .bigres .rsub{color:#c7d0e0;font-size:13px}
+  .prodnote{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:center;gap:4px 8px;margin:0 0 22px;font-size:13px;color:var(--mut);text-align:center}
+  .prodnote-lbl{font-weight:600;text-transform:uppercase;letter-spacing:.04em;font-size:11px;color:#94a3b8}
+  .prodnote-val{font-weight:700;color:#64748b;font-size:14px}
+  .prodnote-sub{font-size:12px}
   .feedbox{background:var(--accent-soft);border:1px solid #cfe0ff;border-radius:20px;padding:20px;text-align:center;margin:14px 0 8px}
+  .feedbox-hero{padding:32px 28px 28px;margin:0 0 12px;border-width:1.5px}
   .feedbox .feedq{font-size:14px;color:#334155;font-weight:600}
+  .feedbox-hero .feedq{font-size:17px;line-height:1.45;max-width:28em;margin:0 auto}
   .feedbox .feedq input{width:66px;padding:5px 7px;border:1px solid #b9ccf0;border-radius:8px;font:inherit;font-weight:700;text-align:center;background:#fff;color:var(--accent)}
   .feedbox .feednum{font-size:46px;font-weight:900;color:var(--accent);line-height:1.05;margin:8px 0 2px}
+  .feedbox-hero .feednum{font-size:62px;letter-spacing:-.03em;margin:14px 0 6px;font-variant-numeric:tabular-nums}
   .feedbox .feedsub{font-size:13px;color:var(--mut)}
+  .feedbox-hero .feedsub{font-size:14px;max-width:24em;margin:0 auto;line-height:1.4}
   /* Von Restorff row — a real search-results row, shown full width on step 2 */
   .vad{background:#fff;border:1px solid #dadce0;border-radius:12px;padding:12px;font-family:arial,sans-serif;position:relative;transition:.32s cubic-bezier(.2,.8,.2,1)}
   .vad img{width:100%;height:86px;object-fit:contain;background:#fff;border-radius:5px}
@@ -258,6 +264,21 @@
   .pw-cta button:hover{filter:brightness(1.06)}
   @media(max-width:900px){.tgrid{columns:2}.pw-results{grid-template-columns:1fr}}
   @media(max-width:560px){.tgrid{columns:1}.pw-head h3{font-size:23px}}
+
+  /* admin iframe preview — tighter phone screen padding */
+  html.audit-embed .screen-in{padding:42px 16px 16px}
+  html.audit-embed .wrap{padding:0 12px}
+  html.audit-embed .stage{padding:10px 0 20px;min-height:0}
+  html.audit-embed .top{height:48px}
+  @media(max-width:900px){
+    html.audit-embed .stage{padding:4px 0 16px}
+    html.audit-embed .screen-in{padding:16px 12px}
+    html.audit-embed .phonecol{gap:10px}
+  }
+  @media(max-width:560px){
+    html.audit-embed .wrap{padding:0 8px}
+    html.audit-embed .screen-in{padding:14px 10px}
+  }
 
   /* ── MOBILE: drop the fake-phone chrome — on a real device it's a plain content card ── */
   @media(max-width:900px){
@@ -402,14 +423,11 @@
               <div class="brand">grip6</div>
               <div class="p-hl">Your numbers</div>
               <div class="p-sub">for <b style="color:var(--accent)">just ONE product</b> in your feed.</div>
-              <div class="cfield"><label>Monthly ad spend ($)</label><input id="in-spend" type="number" value="3000"></div>
+              <div class="cfield"><label>Monthly ad spend ($)</label><input id="in-spend" type="text" inputmode="numeric" value="15,000"></div>
               <div class="crow">
                 <div class="cfield"><label>Cost / click ($)</label><input id="in-cpc" type="number" step="0.01" value="1.20"></div>
-                <div class="cfield"><label>Avg order ($)</label><input id="in-aov" type="number" step="0.01" value="74.97"></div>
+                <div class="cfield"><label>Conversion rate (%)</label><input id="in-cvr" type="number" step="0.1" value="1.6"></div>
               </div>
-              <div class="cfield"><label>Current conversion rate (%)</label><input id="in-cvr" type="number" step="0.1" value="1.6"></div>
-              <div class="cfield"><label>Better title + image, CTR <b class="up" id="ctru-lbl">+20%</b></label><input id="in-ctru" type="range" min="0" max="60" value="20"></div>
-              <div class="cfield"><label>Right price + relevance, CVR <b class="up" id="up-lbl">+25%</b></label><input id="in-up" type="range" min="0" max="60" value="25"></div>
             </div>
 
           </div></div>
@@ -505,8 +523,8 @@
             <div class="why">Same spend, fixed rates</div>
             <div class="divide"></div>
             <div class="rescard" style="text-align:center;margin-bottom:16px"><div class="rl">ROAS on the same spend</div><div class="rv" style="font-size:28px;margin-top:5px"><span style="color:#9aa3af">≈<span id="o-roas">—</span></span> <span class="material-symbols-rounded" style="font-size:19px;color:var(--accent);vertical-align:-3px">arrow_forward</span> <span class="good" id="o-roas2">—</span></div></div>
-            <div class="bigres"><div class="rl">Recoverable on this ONE product</div><div class="bigv" id="o-extra">—</div><div class="rsub">extra / month · <span id="o-year">—</span> / yr</div></div>
-            <div class="feedbox"><div class="feedq">And that's one product. Across your <input id="in-prod" type="number" value="60"> products:</div><div class="feednum" id="o-feed">—</div><div class="feedsub">recoverable per year across your whole feed, money you already pay for</div></div>
+            <div class="feedbox feedbox-hero"><div class="feedq">And that's one product. Across your <b id="disp-prod">60</b> products:</div><div class="feednum" id="o-feed">—</div><div class="feedsub">recoverable per year across the half of your catalog that typically runs ads</div></div>
+            <div class="prodnote"><span class="prodnote-lbl">Recoverable on this ONE product</span> <span class="prodnote-val" id="o-extra">—</span> <span class="prodnote-sub">/ mo · <span id="o-year">—</span> / yr</span></div>
             <button class="cont" data-cont>Meet the team behind it <span class="material-symbols-rounded" style="font-size:20px">arrow_forward</span></button>
           </div>
         </div>
@@ -580,7 +598,36 @@
 <script>
   var $=function(s){return document.getElementById(s)};
   function fmt(n){return '$'+Math.round(n).toLocaleString()}
+  function fmtNum(n){return Math.round(n).toLocaleString('en-US')}
+  function parseSpend(s){return parseFloat(String(s).replace(/[^0-9.]/g,''))||0}
+  var _feedAnim=null, _lastFeedTotal=0;
+  function animateFeedTotal(target){
+    var el=$('o-feed'); if(!el) return;
+    if(_feedAnim) cancelAnimationFrame(_feedAnim);
+    var startTime=null, duration=1400;
+    function frame(ts){
+      if(!startTime) startTime=ts;
+      var t=Math.min(1,(ts-startTime)/duration), eased=1-Math.pow(1-t,3);
+      el.textContent='$'+Math.round(target*eased).toLocaleString('en-US');
+      if(t<1) _feedAnim=requestAnimationFrame(frame);
+      else { el.textContent=fmt(target); _feedAnim=null; }
+    }
+    _feedAnim=requestAnimationFrame(frame);
+  }
   var step = 0, MAX = 4;
+  function notifyParentStep(){
+    try{
+      if(window.parent!==window){
+        window.parent.postMessage({type:'vulcan-audit-step',step:step},window.location.origin);
+      }
+    }catch(e){}
+  }
+  window.addEventListener('message',function(e){
+    if(e.origin!==window.location.origin) return;
+    if(e.data&&e.data.type==='vulcan-audit-goto'&&typeof e.data.step==='number'){
+      show(e.data.step);
+    }
+  });
   // All brand-specific content lives here. Defaults = the grip6 demo; /?domain=x
   // replaces it with the generated payload from /api/audit (see boot at the bottom).
   var AUDIT = {
@@ -604,7 +651,7 @@
       {img:null, title:'Premium Merino Crew Socks', price:'$74.00', store:'footgear.com'},
       {img:null, title:'Wool Blend Socks 3 Pack', price:'$68.00', store:'sockhub.com'}
     ],
-    calc: {aov:74.97, products:60, spend:3000, cpc:1.20, cvr:1.6}
+    calc: {aov:74.97, products:60, spend:15000, cpc:1.20, cvr:1.6, ctr_uplift:20, cvr_uplift:25}
   };
   function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
   // centre the row's own scrollbar rather than scrollIntoView, which would also scroll the page
@@ -665,8 +712,9 @@
     document.body.classList.toggle('revealed', n >= 1);
     if (n === 1) { flipAfter(); if(prev < 1) confetti(); } else if (n === 0) flipBefore();
     if (n === 2) buildVrow();
-    if (n === 3) calc();
+    if (n === 3) { calc(true); }
     if (n === 4) calc();
+    notifyParentStep();
   }
   function flipAfter(){
     var a=AUDIT.ad_after, ad=$('ad');
@@ -698,18 +746,31 @@
     var free=$('ad-free'); if(free) free.remove();
     var rev=$('ad-rev'); if(rev) rev.remove();
   }
-  function calc(){
+  function calc(animateFeed){
     if(!$('in-spend'))return;
-    var spend=+$('in-spend').value||0, cpc=+$('in-cpc').value||0.01, aov=+$('in-aov').value||0,
-        cvr=(+$('in-cvr').value||0)/100, ctru=(+$('in-ctru').value||0)/100, up=(+$('in-up').value||0)/100;
-    $('ctru-lbl').textContent='+'+Math.round(ctru*100)+'%'; $('up-lbl').textContent='+'+Math.round(up*100)+'%';
-    var clicks=spend/cpc, conv=clicks*cvr, rev=conv*aov, roas=spend?rev/spend:0;
-    var clicksI=clicks*(1+ctru), ncvr=cvr*(1+up), convI=clicksI*ncvr, revI=convI*aov, roasI=spend?revI/spend:0, extra=revI-rev;
+    var spend=parseSpend($('in-spend').value), cpc=+$('in-cpc').value||0.01,
+        cvr=(+$('in-cvr').value||0)/100;
+    var aov=(AUDIT.calc&&AUDIT.calc.aov)||0, products=(AUDIT.calc&&AUDIT.calc.products)||1,
+        ctru=((AUDIT.calc&&AUDIT.calc.ctr_uplift)||20)/100, up=((AUDIT.calc&&AUDIT.calc.cvr_uplift)||25)/100;
+    var productSpend=products?(spend/products)*2:spend;
+    var dp=$('disp-prod'); if(dp) dp.textContent=products;
+    var clicks=productSpend/cpc, conv=clicks*cvr, rev=conv*aov, roas=productSpend?rev/productSpend:0;
+    var clicksI=clicks*(1+ctru), ncvr=cvr*(1+up), convI=clicksI*ncvr, revI=convI*aov, roasI=productSpend?revI/productSpend:0, extra=revI-rev;
     $('o-roas').textContent=roas.toFixed(2)+'x'; $('o-roas2').textContent=roasI.toFixed(2)+'x';
     $('o-extra').textContent=fmt(extra); $('o-year').textContent=fmt(extra*12);
-    var prod=+(($('in-prod')||{}).value)||1; if($('o-feed')) $('o-feed').textContent=fmt(extra*12*prod);
+    var advertised=Math.max(1, Math.round(products/2));
+    _lastFeedTotal=extra*12*advertised;
+    if(animateFeed) animateFeedTotal(_lastFeedTotal);
+    else if($('o-feed')) $('o-feed').textContent=fmt(_lastFeedTotal);
   }
-  ['in-spend','in-cpc','in-aov','in-cvr','in-ctru','in-up','in-prod'].forEach(function(id){var e=$(id); if(e) e.addEventListener('input',calc)});
+  var _spend=$('in-spend');
+  if(_spend) _spend.addEventListener('input', function(){
+    var raw=_spend.value.replace(/[^0-9]/g,'');
+    if(!raw){ _spend.value=''; calc(step===3); return; }
+    _spend.value=fmtNum(+raw);
+    calc(step===3);
+  });
+  ['in-cpc','in-cvr'].forEach(function(id){var e=$(id); if(e) e.addEventListener('input',function(){ calc(step===3); });});
   calc();
   $('runbtn').addEventListener('click', function(){ show(1); });
   // step-2 CTA: first click optimizes the ad, then the button morphs into "See what it's costing you"; next click advances
@@ -734,7 +795,13 @@
     if(!p) return;
     ['brand','search_term','ad_before','ad_after','findings','competitors','calc'].forEach(function(k){ if(p[k]!=null) AUDIT[k]=p[k]; });
     document.title='Vulcan · '+(AUDIT.brand.name||AUDIT.brand.domain)+' · Shopping Ad Profit Audit';
-    document.querySelectorAll('.brand').forEach(function(b){ b.textContent=AUDIT.brand.name; });
+    document.querySelectorAll('.brand').forEach(function(b){
+      if(AUDIT.brand.logo_url){
+        b.innerHTML='<img class="brand-logo" src="'+esc(AUDIT.brand.logo_url)+'" alt="'+esc(AUDIT.brand.logo_alt||AUDIT.brand.name)+'">';
+      } else {
+        b.textContent=AUDIT.brand.name;
+      }
+    });
     var vt=$('vr-term'); if(vt) vt.textContent=AUDIT.search_term;
     if(AUDIT.findings && AUDIT.findings.length){
       document.querySelectorAll('[data-finding]').forEach(function(el,i){
@@ -744,7 +811,10 @@
         var pp=el.querySelector('p'); if(pp) pp.textContent=f.body;
       });
     }
-    if(AUDIT.calc){ setVal('in-spend',AUDIT.calc.spend); setVal('in-cpc',AUDIT.calc.cpc); setVal('in-aov',AUDIT.calc.aov); setVal('in-cvr',AUDIT.calc.cvr); setVal('in-prod',AUDIT.calc.products); }
+    if(AUDIT.calc){
+      setVal('in-cpc',AUDIT.calc.cpc); setVal('in-cvr',AUDIT.calc.cvr);
+      var dp=$('disp-prod'); if(dp) dp.textContent=AUDIT.calc.products;
+    }
     var vr=$('vrow'); if(vr){ delete vr.dataset.built; vr.innerHTML=''; if(step===2) buildVrow(); }
     if(step===1) flipAfter(); else flipBefore();
     calc();
@@ -759,7 +829,7 @@
     stage.parentNode.insertBefore(msg,stage);
     fetch('/api/audit?domain='+encodeURIComponent(q))
       .then(function(r){ if(!r.ok) throw new Error('not_found'); return r.json(); })
-      .then(function(j){ applyAudit(j.payload); msg.remove(); document.body.classList.remove('aud-loading'); })
+      .then(function(j){ applyAudit(j.payload); msg.remove(); document.body.classList.remove('aud-loading'); notifyParentStep(); })
       .catch(function(){ msg.innerHTML='<h3>Audit not found</h3><div>We haven&#39;t prepared a Shopping audit for this store.</div>'; });
   })();
 </script>

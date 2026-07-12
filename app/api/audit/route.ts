@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { normalizeDomain } from '@/lib/domain';
 import { svc } from '@/lib/supabase';
 import { DEMO_PAYLOAD } from '@/lib/demo-payload';
+import { enrichBrandLogo } from '@/lib/brand-logo';
 
 const NO_STORE = { 'cache-control': 'no-store' };
 
@@ -18,8 +19,10 @@ export async function GET(req: Request) {
 
   if (process.env.AUDIT_MOCK === '1') {
     if (domain === 'grip6.com') {
+      const payload = structuredClone(DEMO_PAYLOAD);
+      payload.brand = await enrichBrandLogo(payload.brand);
       return NextResponse.json(
-        { domain, payload: DEMO_PAYLOAD, generated_at: new Date().toISOString() },
+        { domain, payload, generated_at: new Date().toISOString() },
         { headers: NO_STORE },
       );
     }
@@ -43,7 +46,8 @@ export async function GET(req: Request) {
         { img: null, title: 'Precision Pour Kettle 1L', price: '$52.00', store: 'coffeelab.com' },
         { img: null, title: 'Gooseneck Kettle White', price: '$47.50', store: 'homebarista.com' },
       ];
-      p.calc = { aov: 49, products: 12, spend: 2000, cpc: 0.9, cvr: 2.1 };
+      p.calc = { aov: 49, products: 12, spend: 2000, cpc: 0.9, cvr: 2.1, ctr_uplift: 20, cvr_uplift: 25 };
+      p.brand = await enrichBrandLogo(p.brand);
       return NextResponse.json(
         { domain, payload: p, generated_at: new Date().toISOString() },
         { headers: NO_STORE },
@@ -66,6 +70,9 @@ export async function GET(req: Request) {
     return NextResponse.json({ error: 'not_found' }, { status: 404, headers: NO_STORE });
   }
 
+  const payload = structuredClone(data.payload) as typeof DEMO_PAYLOAD;
+  payload.brand = await enrichBrandLogo(payload.brand);
+
   try {
     await sb.rpc('bump_audit_view', { p_domain: domain });
   } catch {
@@ -73,7 +80,7 @@ export async function GET(req: Request) {
   }
 
   return NextResponse.json(
-    { domain, payload: data.payload, generated_at: data.generated_at },
+    { domain, payload, generated_at: data.generated_at },
     { headers: NO_STORE },
   );
 }

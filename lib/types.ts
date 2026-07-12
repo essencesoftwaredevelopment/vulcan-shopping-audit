@@ -14,7 +14,7 @@ export type AuditCompetitor = {
 };
 
 export type AuditPayload = {
-  brand: { name: string; domain: string };
+  brand: { name: string; domain: string; logo_url?: string | null; logo_alt?: string | null };
   search_term: string;
   ad_before: { img: string; title: string; price: string; store: string };
   ad_after: {
@@ -29,5 +29,15 @@ export type AuditPayload = {
   };
   findings: AuditFinding[];
   competitors: AuditCompetitor[];
-  calc: { aov: number; products: number; spend: number; cpc: number; cvr: number };
+  calc: {
+    aov: number;
+    products: number;
+    spend: number;
+    cpc: number;
+    cvr: number;
+    /** Fixed CTR uplift from better title + image, percent e.g. 20 */
+    ctr_uplift: number;
+    /** Fixed CVR uplift from right price + relevance, percent e.g. 25 */
+    cvr_uplift: number;
+  };
 };

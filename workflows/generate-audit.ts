@@ -1,6 +1,13 @@
 import { FatalError } from 'workflow';
 import Anthropic from '@anthropic-ai/sdk';
 import sharp from 'sharp';
+import {
+  filterRelevantCardIndices,
+  isIrrelevantProductTitle,
+  selectHeroProductIndex,
+  type ProductCandidate,
+} from '@/lib/product-curation';
+import { fetchBrandLogo, type BrandLogo } from '@/lib/brand-logo';
 import { svc } from '@/lib/supabase';
 import type { AuditCompetitor, AuditFinding, AuditPayload } from '@/lib/types';
 
@@ -54,6 +61,7 @@ type Hero = {
 type Research = {
   domain: string;
   brandName: string;
+  brandLogo: BrandLogo | null;
   hero: Hero;
   productCount: number | null;
   aov: number | null;
@@ -190,7 +198,7 @@ async function gatherResearch(domain: string): Promise<Research> {
     );
   }
 
-  const matchedCard = adObs?.matched_card ?? null;
+  let matchedCard = adObs?.matched_card ?? null;
   let allCards: ShoppingCard[] = Array.isArray(adObs?.all_cards) ? adObs.all_cards : [];
   const cachedCards = extractSerperCards(serperCache?.payload);
   allCards = allCards.concat(cachedCards);
@@ -205,9 +213,33 @@ async function gatherResearch(domain: string): Promise<Research> {
     allCards = allCards.concat(await serperShopping(q));
   }
 
+  const cardCandidates = allCards.map((c, i) => ({
+    index: i,
+    title: (c.title ?? '').trim(),
+    seller: c.seller,
+    price: c.price,
+  }));
+  const relevantIndices = await filterRelevantCardIndices(hero.title, cardCandidates, domain);
+  const relevantSet = new Set(relevantIndices);
+  allCards = allCards.filter((_, i) => relevantSet.has(i));
+
+  if (matchedCard?.title) {
+    if (isIrrelevantProductTitle(matchedCard.title)) {
+      matchedCard = null;
+    } else {
+      const matchedTitle = matchedCard.title.trim().toLowerCase();
+      const poolMatch = cardCandidates.find((c) => c.title.toLowerCase() === matchedTitle);
+      if (poolMatch && !relevantSet.has(poolMatch.index)) matchedCard = null;
+    }
+  }
+
+  const brandName = pickBrandName(domain, hero.vendor, matchedCard?.seller ?? null);
+  const brandLogo = await fetchBrandLogo(domain, brandName);
+
   return {
     domain,
-    brandName: pickBrandName(domain, hero.vendor, matchedCard?.seller ?? null),
+    brandName,
+    brandLogo,
     hero,
     productCount: live?.productCount ?? null,
     aov: live?.aov ?? hero.price ?? null,
@@ -400,7 +432,12 @@ function buildPayload(research: Research, copy: Copy, afterImgUrl: string | null
   };
 
   return {
-    brand: { name: research.brandName, domain },
+    brand: {
+      name: research.brandName,
+      domain,
+      logo_url: research.brandLogo?.url ?? null,
+      logo_alt: research.brandLogo?.alt ?? null,
+    },
     search_term: copy.search_term,
     ad_before: before,
     ad_after: after,
@@ -409,9 +446,11 @@ function buildPayload(research: Research, copy: Copy, afterImgUrl: string | null
     calc: {
       aov: round2(research.aov ?? priceNum ?? 74.97),
       products: research.productCount ?? 60,
-      spend: 3000,
+      spend: 15000,
       cpc: 1.2,
       cvr: 1.6,
+      ctr_uplift: 20,
+      cvr_uplift: 25,
     },
   };
 }
@@ -522,18 +561,26 @@ async function fetchShopifyStore(domain: string, preferHandle: string | null) {
     const usable = products.filter((p) => Array.isArray(p?.variants) && p.variants.length);
     if (!usable.length) return null;
 
-    const heroProd =
-      (preferHandle && usable.find((p) => p.handle === preferHandle)) ||
-      usable.find(
-        (p) => (p.images?.length ?? 0) > 0 && p.variants.some((v: any) => v.available !== false),
-      ) ||
-      usable[0];
+    const scanPool = usable.slice(0, 20);
+    const candidates: ProductCandidate[] = scanPool.map((p, i) => ({
+      index: i,
+      handle: String(p.handle ?? ''),
+      title: String(p.title ?? ''),
+      productType: (p.product_type as string) ?? null,
+      tags: Array.isArray(p.tags) ? p.tags.map(String) : [],
+      vendor: (p.vendor as string) ?? null,
+      hasImage: (p.images?.length ?? 0) > 0,
+      available: p.variants.some((v: any) => v.available !== false),
+    }));
+    const heroIdx = await selectHeroProductIndex(candidates, { domain, preferHandle });
+    const heroProd = scanPool[heroIdx] ?? usable[0];
     const variant =
       heroProd.variants.find((v: any) => v.available !== false) ?? heroProd.variants[0];
     const price = parseMoney(variant?.price);
     const compareAt = parseMoney(variant?.compare_at_price);
 
-    const prices = usable
+    const aovPool = scanPool.filter((p) => !isIrrelevantProductTitle(String(p.title ?? '')));
+    const prices = (aovPool.length ? aovPool : scanPool)
       .map((p) => parseMoney(p.variants?.[0]?.price))
       .filter((n): n is number => n !== null && n > 0);
     const aov = prices.length ? round2(prices.reduce((a, b) => a + b, 0) / prices.length) : null;

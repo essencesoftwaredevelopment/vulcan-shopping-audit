@@ -70,6 +70,7 @@ generated_at }` or 404.
 | `ANTHROPIC_API_KEY` | recommended | Findings/title copy via Claude (`ANTHROPIC_MODEL`, default `claude-sonnet-5`). Without it: deterministic template copy |
 | `GEMINI_API_KEY` | recommended | Standout image (`GEMINI_IMAGE_MODEL`, default `gemini-2.5-flash-image`). Without it: optimized original photo |
 | `SERPER_API_KEY` | optional | Live competitor cards when the pipeline has none for the domain |
+| `CONTEXT_DEV_API_KEY` | optional | Brand logos via [Context.dev](https://context.dev) retrieve API; falls back to brand name text |
 | `AUDIT_MOCK` | dev only | `1` → `GET /api/audit` serves bundled payloads for `grip6.com` and `mockbrand.com` without Supabase |
 
 ## Local development
