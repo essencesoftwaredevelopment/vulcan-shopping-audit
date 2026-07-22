@@ -756,7 +756,10 @@
     var dp=$('disp-prod'); if(dp) dp.textContent=products;
     var clicks=productSpend/cpc, conv=clicks*cvr, rev=conv*aov, roas=productSpend?rev/productSpend:0;
     var clicksI=clicks*(1+ctru), ncvr=cvr*(1+up), convI=clicksI*ncvr, revI=convI*aov, roasI=productSpend?revI/productSpend:0, extra=revI-rev;
-    $('o-roas').textContent=roas.toFixed(2)+'x'; $('o-roas2').textContent=roasI.toFixed(2)+'x';
+    // Pitch floor: never show sub-1 ROAS; keep the same relative uplift (typically ×1.5)
+    var lift=roas>0?roasI/roas:(1+ctru)*(1+up);
+    var showRoas=Math.max(1,roas), showRoasI=showRoas*lift;
+    $('o-roas').textContent=showRoas.toFixed(2)+'x'; $('o-roas2').textContent=showRoasI.toFixed(2)+'x';
     $('o-extra').textContent=fmt(extra); $('o-year').textContent=fmt(extra*12);
     var advertised=Math.max(1, Math.round(products/2));
     _lastFeedTotal=extra*12*advertised;
